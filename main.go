@@ -93,12 +93,29 @@ func newServer(secret string) *server {
 
 func (s *server) routes() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", s.handleHome)
 	mux.HandleFunc("/health", s.handleHealth)
 	mux.HandleFunc("/auth/register", s.handleRegister)
 	mux.HandleFunc("/auth/login", s.handleLogin)
 	mux.HandleFunc("/tickets", s.handleTickets)
 	mux.HandleFunc("/tickets/", s.handleTicketByID)
 	return mux
+}
+
+func (s *server) handleHome(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		methodNotAllowed(w)
+		return
+	}
+	if r.Method != http.MethodGet {
+		methodNotAllowed(w, http.MethodGet)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":  "ok",
+		"service": "ticket-system",
+		"health":  "/health",
+	})
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
